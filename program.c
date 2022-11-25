@@ -1,61 +1,129 @@
-#include <stdio.h>
-#include<string.h>
+// Java program to demonstrate the creation
+// of Encryption and Decryption with Java AES
+import java.nio.charset.StandardCharsets;
+import java.security.spec.KeySpec;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Scanner;
 
-void encrypt(int option,int key)
-    {
-        int i, len=0;
-        char password[200];
-        printf("\n\t\t\tEnter your password:");
-        scanf("%s",password);
- 
-        len = strlen(password);
-        printf("\n\t\t\tYour encrypted password is: ");
-        
-        
-        for(i=0; (i<len&& password[i] != '\0'); i++)
-        printf("%c",password[i]+key);
-    }
-void decrypt(int option,int key)
-    {   
-        int i, len=0;
-        char password[200];
-        printf("\n\t\t\tEnter your encrypted password:");
-        scanf("%s",password);
- 
-        len = strlen(password);
-        printf("\n\t\t\tYour decrypted password is: ");
- 
-        for(i=0; (i<len && password[i] != '\0'); i++)
-        printf("%c",password[i]-key);
-    }
-    
-int main()
-{
-    int option;
-    char ch;
-    print:
-    printf("\t\t\tChoose Your Option\n\t\t\t1.ENCRYPTION\n\t\t\t2.DECRYPTION\n\n");
-    scanf("%d",&option);
-    if(option==1)
-    encrypt(option,0XAED);
-    else if(option==2)
-    decrypt(option,0XAED);
-    else
-    printf("Please Choose Your Option Correctly!");
-    again:
-    printf ("\n\t\t\tDo you want to repeat the operation(Y/N): ");
-    scanf (" %s", &ch);
+class AES {
+	// Class private variables
+	private static final String SECRET_KEY
+		= "my_super_secret_key_ho_ho_ho";
+	
+	private static final String SALT = "ssshhhhhhhhhhh!!!!";
 
-    if(ch == 'y' || ch == 'Y'){
-        goto print;
-    }
-    else if(ch == 'n' || ch == 'N'){
-        return 0;
-    }
-    else{
-        printf("\n\t\t\tPlease enter Yes or NO.\n");
-        goto again;
-    }
-    return 0;
+	// This method use to encrypt to string
+	public static String encrypt(String strToEncrypt)
+	{
+		try {
+
+			// Create default byte array
+			byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0 };
+			IvParameterSpec ivspec
+				= new IvParameterSpec(iv);
+
+			// Create SecretKeyFactory object
+			SecretKeyFactory factory
+				= SecretKeyFactory.getInstance(
+					"PBKDF2WithHmacSHA256");
+			
+			// Create KeySpec object and assign with
+			// constructor
+			KeySpec spec = new PBEKeySpec(
+				SECRET_KEY.toCharArray(), SALT.getBytes(),
+				65536, 256);
+			SecretKey tmp = factory.generateSecret(spec);
+			SecretKeySpec secretKey = new SecretKeySpec(
+				tmp.getEncoded(), "AES");
+
+			Cipher cipher = Cipher.getInstance(
+				"AES/CBC/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, secretKey,
+						ivspec);
+			// Return encrypted string
+			return Base64.getEncoder().encodeToString(
+				cipher.doFinal(strToEncrypt.getBytes(
+					StandardCharsets.UTF_8)));
+		}
+		catch (Exception e) {
+			System.out.println("Error while encrypting: "
+							+ e.toString());
+		}
+		return null;
+	}
+
+	// This method use to decrypt to string
+	public static String decrypt(String strToDecrypt)
+	{
+		try {
+
+			// Default byte array
+			byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0 };
+			// Create IvParameterSpec object and assign with
+			// constructor
+			IvParameterSpec ivspec
+				= new IvParameterSpec(iv);
+
+			// Create SecretKeyFactory Object
+			SecretKeyFactory factory
+				= SecretKeyFactory.getInstance(
+					"PBKDF2WithHmacSHA256");
+
+			// Create KeySpec object and assign with
+			// constructor
+			KeySpec spec = new PBEKeySpec(
+				SECRET_KEY.toCharArray(), SALT.getBytes(),
+				65536, 256);
+			SecretKey tmp = factory.generateSecret(spec);
+			SecretKeySpec secretKey = new SecretKeySpec(
+				tmp.getEncoded(), "AES");
+
+			Cipher cipher = Cipher.getInstance(
+				"AES/CBC/PKCS5PADDING");
+			cipher.init(Cipher.DECRYPT_MODE, secretKey,
+						ivspec);
+			// Return decrypted string
+			return new String(cipher.doFinal(
+				Base64.getDecoder().decode(strToDecrypt)));
+		}
+		catch (Exception e) {
+			System.out.println("Error while decrypting: "
+							+ e.toString());
+		}
+		return null;
+	}
 }
-    
+
+// driver code
+public class Program3 {
+	public static void main(String[] args)
+	{
+		// Create String variables
+            Scanner sc = new Scanner(System.in);
+		String originalString ;
+                System.out.println("Enter your Password:");
+                originalString = sc.next();
+		
+		// Call encryption method
+                
+		String encryptedString
+			= AES.encrypt(originalString);
+		
+		// Call decryption method
+		String decryptedString
+			= AES.decrypt(encryptedString);
+
+		// Print all strings
+		System.out.println(originalString);
+		System.out.println("Encrypted text: "+encryptedString);
+		System.out.println("Decrypted text"+decryptedString);
+	}
+}
